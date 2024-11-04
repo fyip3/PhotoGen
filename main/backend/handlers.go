@@ -39,13 +39,12 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
         return
     }
 
-    // Store images in the database with a unique session ID
-    // sessionID := "unique-session-id" // Replace with actual session ID generation
-    // if err := saveGeneratedImages(sessionID, images); err != nil {
-    //     http.Error(w, "Failed to save images", http.StatusInternalServerError)
-    //     log.Println("Database save error:", err)
-    //     return
-    // }
+    sessionID := "unique-session-id" 
+     if err := saveGeneratedImages(sessionID, images); err != nil {
+         http.Error(w, "Failed to save images", http.StatusInternalServerError)
+         log.Println("Database save error:", err)
+         return
+     }
 
     w.Header().Set("Content-Type", "application/json")
     json.NewEncoder(w).Encode(UploadResponse{GeneratedImages: images})

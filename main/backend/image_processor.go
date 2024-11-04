@@ -1,4 +1,3 @@
-// backend/image_processor.go
 package main
 
 import (
@@ -31,7 +30,7 @@ func generateImages(description string) ([]GeneratedImage, error) {
             // Generate an image using the description and the current style
             generatedImage, err := callAIAPI(description)
             if err != nil {
-                return // Optionally, log the error here
+                return 
             }
 
             mu.Lock()
@@ -58,7 +57,7 @@ func callAIAPI(prompt string) (GeneratedImage, error) {
         "size":   "1024x1024",
     })
 
-    fmt.Println("Request Body:", string(requestBody))  // Log request payload
+    fmt.Println("Request Body:", string(requestBody))
 
     req, err := http.NewRequest("POST", url, bytes.NewBuffer(requestBody))
     if err != nil {
@@ -77,7 +76,7 @@ func callAIAPI(prompt string) (GeneratedImage, error) {
 
     if resp.StatusCode != http.StatusOK {
         body, _ := ioutil.ReadAll(resp.Body)
-        fmt.Println("API Error Response:", string(body))  // Log error response
+        fmt.Println("API Error Response:", string(body))  
         return GeneratedImage{}, fmt.Errorf("OpenAI API error: %s", body)
     }
 
@@ -90,7 +89,7 @@ func callAIAPI(prompt string) (GeneratedImage, error) {
         return GeneratedImage{}, fmt.Errorf("failed to decode OpenAI response: %w", err)
     }
 
-    fmt.Println("Response Data:", response)  // Log successful response
+    fmt.Println("Response Data:", response)  
 
     if len(response.Data) == 0 {
         return GeneratedImage{}, fmt.Errorf("no images generated")

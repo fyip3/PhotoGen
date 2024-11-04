@@ -4,7 +4,9 @@ import (
     "context"
     "go.mongodb.org/mongo-driver/mongo"
     "go.mongodb.org/mongo-driver/mongo/options"
+    "go.mongodb.org/mongo-driver/bson"
     "time"
+    "log"
 )
 
 var client *mongo.Client
@@ -21,12 +23,29 @@ func connectDatabase() error {
     if err != nil {
         return err
     }
-    return client.Ping(context.TODO(), nil)
+    if err = client.Ping(context.TODO(), nil); err != nil {
+        return err
+    }
+
+    // Set up TTL index to expire documents after 1 hour
+    collection := client.Database("imagegen").Collection("sessions")
+    indexModel := mongo.IndexModel{
+        Keys: bson.M{"created_at": 1}, 
+        Options: options.Index().SetExpireAfterSeconds(3600), 
+    }
+    _, err = collection.Indexes().CreateOne(context.TODO(), indexModel)
+    if err != nil {
+        log.Printf("Failed to create TTL index: %v\n", err)
+        return err
+    }
+
+    log.Println("Connected to MongoDB and TTL index created.")
+    return nil
 }
 
 func saveGeneratedImages(sessionID string, images []GeneratedImage) error {
     collection := client.Database("imagegen").Collection("sessions")
-    _, err := collection.InsertOne(context.TODO(), map[string]interface{}{
+    _, err := collection.InsertOne(context.TODO(), bson.M{
         "session_id":       sessionID,
         "generated_images": images,
         "created_at":       time.Now(),
@@ -40,7 +59,7 @@ func getImagesBySessionID(sessionID string) ([]GeneratedImage, error) {
         GeneratedImages []GeneratedImage `bson:"generated_images"`
     }
 
-    filter := map[string]interface{}{"session_id": sessionID}
+    filter := bson.M{"session_id": sessionID}
     err := collection.FindOne(context.TODO(), filter).Decode(&result)
     if err != nil {
         return nil, err
