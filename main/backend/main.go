@@ -32,6 +32,9 @@ func main() {
     if apiKey == "" {
         log.Fatal("OpenAI API key not set")
     }
+	if err := connectDatabase(); err != nil {
+        log.Fatalf("Failed to connect to the database: %v\n", err)
+    }
     r := mux.NewRouter()
 
     r.Use(enableCORS)
